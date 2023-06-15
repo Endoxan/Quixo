@@ -1,9 +1,15 @@
 package com.example.quixofx2;
 
+import javafx.scene.Group;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 
-public class Cube extends Rectangle {
+public class Cube extends StackPane {
+    private State state;
+    private Rectangle rectangle;
+    private Text text;
     private int row;
     private int col;
     private boolean selected;
@@ -11,50 +17,74 @@ public class Cube extends Rectangle {
     private static final Color BASIC_COLOR = Color.WHITE;
 
     public Cube(int size){
-        super(size, size);
-        this.setStroke(Color.BLACK);
-        setFill(BASIC_COLOR);
+        rectangle = new Rectangle(size, size);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setFill(BASIC_COLOR);
+//        text = new Text("" + getIndex(5));
+        text = new Text();
+        getChildren().addAll(rectangle, text);
+        state = State.NONE;
     }
 
     public Cube(int size, int row, int col){
-        super(size, size);
+        rectangle = new Rectangle(size, size);
         this.row = row;
         this.col = col;
-        this.setStroke(Color.BLACK);
-        setFill(BASIC_COLOR);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setFill(BASIC_COLOR);
+//        text = new Text("" + getIndex(5));
+        text = new Text();
+        getChildren().addAll(rectangle, text);
+        state = State.NONE;
     }
 
     public Cube(Cube c){
-        super(c.getWidth(), c.getHeight());
+        rectangle = new Rectangle(c.getRectangle().getWidth(), c.getRectangle().getHeight());
         this.row = c.getRow();
         this.col = c.getCol();
-        this.setStroke(c.getStroke());
-        this.setFill(c.getFill());
+        rectangle.setStroke(c.getRectangle().getStroke());
+        rectangle.setFill(c.getRectangle().getFill());
         this.selected = c.isSelected();
         this.highlighted = c.isHighlighted();
+//        text = new Text("" + getIndex(5));
+        text = new Text();
+        getChildren().addAll(rectangle, text);
+        state = c.getState();
     }
 
     public int getIndex(int boardSize){
         return row * boardSize + col;
     }
     public void setBasicColor(){
-        setFill(BASIC_COLOR);
+        rectangle.setFill(BASIC_COLOR);
+    }
+
+    public Rectangle getRectangle() {
+        return rectangle;
+    }
+
+    public Text getText() {
+        return text;
     }
 
     public int getRow() {
         return row;
     }
 
-    public void setRow(int row) {
-        this.row = row;
-    }
 
     public int getCol() {
         return col;
     }
 
-    public void setCol(int col) {
+
+    public void setPlacement(int row, int col){
+        this.row = row;
         this.col = col;
+//        text.setText("" + getIndex(5));
+    }
+
+    public void correctPlacement(){
+//        text.setText("" + getIndex(5));
     }
 
     public boolean isSelected() {
@@ -71,5 +101,20 @@ public class Cube extends Rectangle {
 
     public void setHighlighted(boolean highlighted) {
         this.highlighted = highlighted;
+    }
+
+    public void setState(State state){
+        this.state = state;
+        text.setText(state.toString());
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public enum State{
+        NONE,
+        X,
+        O
     }
 }
