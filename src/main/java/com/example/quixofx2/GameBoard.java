@@ -1,5 +1,7 @@
 package com.example.quixofx2;
 
+import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -9,7 +11,9 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 
+
 public class GameBoard  extends GridPane {
+    private QuixoApplication app;
     private static final int BOARD_SIZE = 5;
     private static final int CELL_SIZE = 50;
     private static final Color SELECTED_COLOR = Color.YELLOW;
@@ -19,8 +23,9 @@ public class GameBoard  extends GridPane {
     private Cube selected = null;
     private ArrayList<Cube> highlighted;
 
-    public GameBoard(){
+    public GameBoard(QuixoApplication app){
         super();
+        this.app = app;
         turn = 0;
         highlighted = new ArrayList<>();
         setAlignment(Pos.CENTER);
@@ -40,7 +45,9 @@ public class GameBoard  extends GridPane {
 
     private void handleCellClicked(Cube cube){
         if(selected != null && cube.isHighlighted()){
+            app.sendMove(selected, cube);
             swapCubes(selected, cube);
+            toggleCubes(false);
         }else if(cube.getState() == Cube.State.NONE && (cube.getCol() == 0 || cube.getCol() == 4 || cube.getRow() == 0 || cube.getRow() == 4)) {
             if (cube.isSelected()) {
                 clearSelectedCell();
@@ -149,6 +156,8 @@ public class GameBoard  extends GridPane {
                 c.setOnMouseClicked(null);
             }
         }
+
+
     }
 
     private boolean gameWon() {
@@ -261,8 +270,10 @@ public class GameBoard  extends GridPane {
     }
 
     private void clearSelectedCell() {
-        selected.setSelected(false);
-        selected.setBasicColor();
+        if(selected != null) {
+            selected.setSelected(false);
+            selected.setBasicColor();
+        }
         selected = null;
     }
 
@@ -272,5 +283,31 @@ public class GameBoard  extends GridPane {
             cube.setBasicColor();
         }
         highlighted.clear();
+    }
+
+    public void startReceivingMove(){
+        Thread t = new Thread(new Runnable() {
+            int[] coordinates;
+            @Override
+            public void run() {
+                while (true){
+                    coordinates = app.receiveMove();
+                    if(coordinates[0] != -1 && coordinates[1] != -1 && coordinates[2] != -1 && coordinates[3] != -1){
+                        Platform.runLater(() -> swapCubes(getCubeByRowCol(coordinates[0], coordinates[1]), getCubeByRowCol(coordinates[2], coordinates[3])));
+                        Platform.runLater(() -> toggleCubes(true));
+                    }
+                }
+            }
+        });
+        t.start();
+    }
+
+    public void toggleCubes(boolean b) {
+        for(Node n : getChildren()){
+            Cube c = (Cube) n;
+            if(b){
+                c.setOnMouseClicked(event -> handleCellClicked(c));
+            }else c.setOnMouseClicked(null);
+        }
     }
 }
